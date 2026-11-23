@@ -1,7 +1,7 @@
 # intro van de game
-print("====Welcome to the RPG Game!====")
+print("====Welcome to the RPG Game!=====")
 print("In dit spel kun je items verzamelen, vechten tegen monsters en je karakter verbeteren.")
-print("Laten we beginnen met het maken van je karakter!")
+print("Laten we beginnen met het maken van je karakter!\n")
 
 # main character
 
@@ -15,15 +15,15 @@ def create_character():
         name = input("Voer de naam van je karakter in: ").strip()
 
     valid_classes = {
-        "1": {"naam": "Warrior", "aanvalskracht": 15, "speed": 10, "verdediging": 20, "starter_wapen": "Houten Zwaard", "unieke_aanval": "Schildklap"},
-        "2": {"naam": "Mage", "aanvalskracht": 20, "speed": 15, "verdediging": 10, "starter_wapen": "Oude Staf", "unieke_aanval": "Vuurbal"},
-        "3": {"naam": "Rogue", "aanvalskracht": 25, "speed": 20, "verdediging": 5, "starter_wapen": "Roestige Dolk", "unieke_aanval": "Schaduwsteek"}
+        "1": {"naam": "Warrior", "aanvalskracht": 15, "speed": 10, "verdediging": 20, "max_hp": 120, "starter_wapen": "Houten Zwaard", "unieke_aanval": "Schildklap"},
+        "2": {"naam": "Mage", "aanvalskracht": 20, "speed": 15, "verdediging": 10, "max_hp": 80, "starter_wapen": "Oude Staf", "unieke_aanval": "Vuurbal"},
+        "3": {"naam": "Rogue", "aanvalskracht": 25, "speed": 20, "verdediging": 5, "max_hp": 90, "starter_wapen": "Roestige Dolk", "unieke_aanval": "Schaduwsteek"}
     }
 
     print("\nKies een klasse voor je karakter:")
-    print("[1] Warrior (Lage aanval, hoge verdediging)")
-    print("[2] Mage (Hoge magie, lage verdediging)")
-    print("[3] Rogue (Hoge aanval, hoge snelheid)")
+    print("[1] Warrior (Hoge HP & Verdediging)")
+    print("[2] Mage (Hoge Magie/Aanval)")
+    print("[3] Rogue (Hoge Snelheid & Aanval)")
 
     while True:
         keuze = input("\nJouw keuze (1, 2 of 3): ").strip()
@@ -40,9 +40,11 @@ def create_character():
         # Level & XP tracker
         "level": 1,
         "xp": 0,
-        "xp_nodig": 100,  # XP nodig om level 2 te bereiken
+        "xp_nodig": 100,
 
-        # Stats
+        # Stats & HP
+        "max_hp": gekozen_klasse["max_hp"],
+        "hp": gekozen_klasse["max_hp"],  # Begint volledig genezen
         "aanvalskracht": gekozen_klasse["aanvalskracht"],
         "speed": gekozen_klasse["speed"],
         "verdediging": gekozen_klasse["verdediging"],
@@ -60,29 +62,65 @@ def create_character():
     return karakter
 
 
+def kies_stat_upgrades(karakter):
+    """Laat de speler 5 punten verdelen na een level up."""
+    beschikbare_punten = 5
+
+    print("\n" + "=" * 40)
+    print("🌟 LEVEL UP! Je bent gegroeid naar Level " +
+          str(karakter["level"]) + "!")
+    print("Je hebt 5 upgrade-punten te besteden.")
+    print("=" * 40)
+
+    while beschikbare_punten > 0:
+        print(f"\nResterende punten: {beschikbare_punten}")
+        print("Wat wil je verbeteren?")
+        print("[1] Max HP (+10 HP & geneest 10 HP)")
+        print("[2] Aanvalskracht (+1)")
+        print("[3] Snelheid (+1)")
+        print("[4] Verdediging (+1)")
+
+        keuze = input("Kies een optie (1-4): ").strip()
+
+        if keuze == "1":
+            karakter["max_hp"] += 10
+            karakter["hp"] += 10  # Geneest direct 10 punten
+            print("-> Max HP verhoogd met 10! Je HP is hersteld.")
+            beschikbare_punten -= 1
+
+        elif keuze == "2":
+            karakter["aanvalskracht"] += 1
+            print("-> Aanvalskracht verhoogd met 1!")
+            beschikbare_punten -= 1
+
+        elif keuze == "3":
+            karakter["speed"] += 1
+            print("-> Snelheid verhoogd met 1!")
+            beschikbare_punten -= 1
+
+        elif keuze == "4":
+            karakter["verdediging"] += 1
+            print("-> Verdediging verhoogd met 1!")
+            beschikbare_punten -= 1
+
+        else:
+            print("❌ Ongeldige keuze. Kies een getal tussen 1 en 4.")
+
+    print("\n✨ Alle punten zijn verdeeld! Je stats zijn bijgewerkt.")
+
+
 def geef_xp(karakter, hoeveelheid_xp):
-    """Voegt XP toe aan het karakter en controleert voor een level-up."""
+    """Voegt XP toe en triggert de stat-keuze bij een level up."""
     print(f"\n✨ Je hebt {hoeveelheid_xp} XP verdiend!")
     karakter["xp"] += hoeveelheid_xp
 
-    # Zolang de speler genoeg XP heeft voor een level-up (kan meerdere keren achter elkaar als je heel veel XP krijgt)
     while karakter["xp"] >= karakter["xp_nodig"]:
-        # Trek de gebruikte XP af voor het huidige level
         karakter["xp"] -= karakter["xp_nodig"]
         karakter["level"] += 1
-
-        # Verhoog de benodigde XP voor het volgende level met bijv. 50%
         karakter["xp_nodig"] = int(karakter["xp_nodig"] * 1.5)
 
-        # Verhoog de basis stats bij een level up!
-        karakter["aanvalskracht"] += 3
-        karakter["verdediging"] += 2
-        karakter["speed"] += 1
-
-        print("=" * 40)
-        print(f"🌟 LEVEL UP! Je bent nu Level {karakter['level']}!")
-        print("Je stats zijn verhoogd: +3 Aanval, +2 Verdediging, +1 Snelheid!")
-        print("=" * 40)
+        # Roep de functie aan waarin de speler zelf kiest waar de 5 punten heen gaan
+        kies_stat_upgrades(karakter)
 
 
 def toon_karakter_stats(karakter):
@@ -90,6 +128,7 @@ def toon_karakter_stats(karakter):
     print(
         f"📊 STATS VAN: {karakter['naam'].upper()} (Lvl {karakter['level']} {karakter['klasse']})")
     print("=" * 40)
+    print(f"• HP           : {karakter['hp']} / {karakter['max_hp']}")
     print(f"• XP           : {karakter['xp']} / {karakter['xp_nodig']} XP")
     print(f"• Aanvalskracht: {karakter['aanvalskracht']}")
     print(f"• Snelheid     : {karakter['speed']}")
@@ -99,7 +138,7 @@ def toon_karakter_stats(karakter):
     print("=" * 40)
 
 
-# --- TEST HET LEVEL-SYSTEEM EN DE DUNGEON ---
+# --- START HET SPEL ---
 mijn_speler = create_character()
 
 while True:
@@ -107,9 +146,9 @@ while True:
         "\nWat wil je doen? [dungeon / stats / stoppen]: ").strip().lower()
 
     if actie == "dungeon":
-        print("\n🗡️  Je gaat de dungeon in en verslaat een goblin!")
-        # Geef bijvoorbeeld 60 XP voor het verslaan van de goblin
-        geef_xp(mijn_speler, 60)
+        print("\n🗡️  Je gaat de dungeon in en verslaat een sterke vijand!")
+        # We geven direct 100 XP zodat je de level-up en puntenverdeling kunt testen
+        geef_xp(mijn_speler, 100)
 
     elif actie == "stats":
         toon_karakter_stats(mijn_speler)
@@ -120,7 +159,6 @@ while True:
 
     else:
         print("Ongeldig commando! Kies uit: dungeon, stats of stoppen.")
-
 # character creator
 
 
